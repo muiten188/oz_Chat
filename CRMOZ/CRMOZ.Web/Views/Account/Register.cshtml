@@ -1,0 +1,136 @@
+﻿@model CRMOZ.Web.Models.RegisterViewModel
+@{
+    ViewBag.Title = "Thêm thành viên";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .messages-menu, .notifications-menu {
+        display:none !important;
+    }
+    .user-panel > .info{
+        width:83%;
+        left:0 !important;
+    }
+    .navbar-nav{
+        float:right !important;
+    }
+    #main-right-bar{
+        display:none !important;
+    }
+</style>
+<section class="content-header">
+    <h1 style="display:inline-block;">
+        <a href="/"><i class="fa fa-home"></i></a>
+        <span style="font-size:17px;float:right;margin-left:10px;margin-top:5px;">Thành Viên</span>
+    </h1>
+    <a href="@Url.Action("Register","Account")" style="float:right;@(ViewBag.Message == "Edit" ? "display:inline-block;" : "display:none;" )" class="btn btn-sm btn-info btn-register">Thêm mới</a>
+</section>
+<!-- Main content -->
+<section class="content">
+    <!-- Default box -->
+    <div class="box">
+        
+        <div class="box-body">
+            <div class="row">
+                <div class="col-sm-3"></div>
+                <div class="col-sm-6">
+                    @using (Html.BeginForm("Register", "Account", FormMethod.Post))
+                    {
+                        @Html.AntiForgeryToken()
+                        <div class="box-body">
+                            @Html.HiddenFor(model => model.Id)
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Email)
+                                @Html.TextBoxFor(model => model.Email, new { @class = "form-control", placeholder = "Nhập email" })
+                                @Html.ValidationMessageFor(model => model.Email, null, new { @class = "text-danger" })
+                            </div>
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.FullName)
+                                @Html.TextBoxFor(model => model.FullName, new { @class = "form-control", placeholder = "Nhập họ tên" })
+                                @Html.ValidationMessageFor(model => model.FullName, null, new { @class = "text-danger" })
+                            </div>
+                            @if (ViewBag.Message != "Edit")
+                            {
+                                <div class="form-group form-password">
+                                    @Html.LabelFor(model => model.Password)
+                                    @Html.PasswordFor(model => model.Password, new { @class = "form-control", placeholder = "Nhập mật khẩu" })
+                                    @Html.ValidationMessageFor(model => model.Password, null, new { @class = "text-danger" })
+                                </div>
+                                <div class="form-group form-password">
+                                    @Html.LabelFor(model => model.ConfirmPassword)
+                                    @Html.PasswordFor(model => model.ConfirmPassword, new { @class = "form-control", placeholder = "Nhập lại mật khẩu" })
+                                    @Html.ValidationMessageFor(model => model.ConfirmPassword, null, new { @class = "text-danger" })
+                                </div>
+                            }
+                            <div class="form-group">
+                                @Html.LabelFor(model => model.Avatar)
+                                @Html.HiddenFor(model => model.Avatar)
+                                <input type="file" id="file-avatar">
+                                <br />
+                                <div id="avatar-box">
+                                    <img src="@Model.Avatar" alt="" class="img-responsive" />
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.box-body -->
+                        <div class="box-footer">
+                            <a href="/thanh-vien" class="btn btn-default">Hủy</a>
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <button type="button" class="btn btn-info role-create hidden">Cấp quyền</button>
+                            }
+                            <button type="submit" class="btn btn-primary">Lưu lại</button>
+                        </div>
+                    }
+                </div>
+                <div class="col-sm3"></div>
+            </div>
+        </div>
+    </div>
+    <!-- /.box -->
+</section>
+
+<div class="modal fade bs-example-modal-sm" id="modal-role" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h4 class="modal-title" id="myModalLabel">Cấp quyền</h4>
+            </div>
+            <div class="modal-body" style="padding:10px 20px;">
+                <form>
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label>Họ tên</label>
+                            <input type="text" id="role-fullname" class="form-control" disabled />
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="text" id="role-email" class="form-control" disabled />
+                        </div>
+                        <div class="form-group">
+                            <label>Danh sách quyền</label>
+                            <select id="select-role" class="form-control select2" style="width: 50%;">
+                                <option selected="selected">Chọn quyền</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Thoát</button>
+                <button type="button" class="btn btn-primary pull-right" id="role-save">Lưu</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts{
+    <script src="~/Scripts/member.js"></script>
+    <script>
+        $(function () {
+            $('#wrapper-body').addClass("not-hub-chat");
+            GetAllUser();
+        });
+    </script>
+}

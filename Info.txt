@@ -1,0 +1,3 @@
+Quan tri:
+   username: oz123@gmail.com
+   pass: 123456

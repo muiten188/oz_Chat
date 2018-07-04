@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Users>
+  <User>
+    <ID>Test</ID>
+    <Email>Test</Email>
+    <UserName>Test</UserName>
+    <FullName>Test</FullName>
+    <Avatar>Test</Avatar>
+    <ConnectionId>Test</ConnectionId>
+    <Connected>Test</Connected>
+  </User>
+  <User>
+    <ID>94be0c39-aeac-491c-9f23-01d05401c610</ID>
+    <Email>user2@gmail.com</Email>
+    <UserName>user2@gmail.com</UserName>
+    <FullName>Lê Bảo Bình</FullName>
+    <Avatar>/Uploads/b995dff2-1431-44a6-8fa8-9d983eef2afb.jpg</Avatar>
+    <ConnectionId>07e46921-d8d9-487e-962b-9ac604c02677</ConnectionId>
+    <Connected>true</Connected>
+  </User>
+</Users>

@@ -1,0 +1,364 @@
+﻿@using CRMOZ.Web.Extensions
+@using Microsoft.AspNet.Identity;
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>@ViewBag.Title</title>
+    <!-- Tell the browser to be responsive to screen width -->
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+    <!-- iCheck -->
+    <link href="~/Content/plugins/iCheck/square/blue.css" rel="stylesheet" />
+    @Styles.Render("~/Content/lightgallery")
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    @RenderSection("css", required: false)
+    <!-- Google Font -->
+    @*<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">*@
+</head>
+<body class="hold-transition skin-blue sidebar-mini">
+    <!-- Site wrapper -->
+    <div class="wrapper" id="wrapper-body">
+        <header class="main-header">
+            <nav class="navbar navbar-static-top">
+                <a href="javascript:void(0)" class="sidebar-toggle" id="btn-show-leftbar" role="button">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+                <a href="@Url.Action("Index","Home")" class="btn-home">
+                    <i class="fa fa-home"></i>
+                </a>
+            </nav>
+        </header>
+        <!-- =============================================== -->
+        <!-- Left side column. contains the sidebar -->
+        <aside class="main-sidebar" id="main-sidebar">
+            <!-- sidebar: style can be found in sidebar.less -->
+            <section class="sidebar">
+                <a href="javascript:void(0)" id="sm-sidebar-hide">X</a>
+                <!-- Sidebar user panel -->
+                <div class="user-panel">
+                    <div class="pull-left image" style="position:relative">
+                        <img src="@User.Identity.GetUserAvatar()" class="img-circle" alt="User Image">
+                        <a href="#" style="position:absolute;right:3px;bottom:-3px;"><i class="fa fa-circle text-success" style="color:#94d82d;"></i></a>
+                    </div>
+                    <div class="pull-left info">
+                        <ul class="nav navbar-nav">
+                            <!-- Messages: style can be found in dropdown.less-->
+                            <li class="dropdown messages-menu">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="top-new-count">
+                                    <i class="fa fa-envelope-o"></i>
+                                    <span class="label label-info">0</span>
+                                </a>
+                            </li>
+                            <!-- Notifications: style can be found in dropdown.less -->
+                            <li class="dropdown notifications-menu">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" id="header-message-group">
+                                    <i class="fa fa-bell-o"></i>
+                                    <span class="label label-warning">0</span>
+                                </a>
+                            </li>
+                            <!-- User Account: style can be found in dropdown.less -->
+                            <li class="dropdown user user-menu">
+                                <div class="user-menu-dots">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                                <div class="user-body">
+                                    <a href="#" data-id="@User.Identity.GetUserId()" id="view-profile">Profile</a>
+                                    @if (User.IsInRole("Admin") || User.IsInRole("Mod"))
+                                    {
+                                        <a href="@Url.Action("Register", "Account")">Thành viên</a>
+                                    }
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <a href="javascript:void(0)" class="common-pass">Đổi mật khẩu chung</a>
+                                    }
+                                    <a href="#" data-id="@User.Identity.GetUserId()" id="view-password">Đổi mật khẩu cá nhân</a>
+                                    @using (Html.BeginForm("LogOff", "Account", FormMethod.Post, new { id = "log-off" }))
+                                    {
+                                        @Html.AntiForgeryToken();
+                                        <button type="submit">Đăng Xuất</button>
+                                    }
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                <!-- sidebar menu: : style can be found in sidebar.less -->
+                <div class="sidebar-menu">
+                    <div class="nav-tabs-custom">
+                        <ul class="nav nav-tabs">
+                            <li class="active"><a href="#contact" id="tab-contact" data-toggle="tab"><i class="fa fa-home"></i> Danh bạ</a></li>
+                            @*<li><a href="#message" id="tab-message" data-toggle="tab"><i class="fa fa-envelope"></i> Tin nhắn</a></li>*@
+                            <li><a href="#settings" id="tab-group" data-toggle="tab"><i class="fa fa-users"></i> Nhóm</a></li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="contact"></div>
+                            @*<div class="tab-pane" id="message"></div>*@
+                            <div class="tab-pane" id="settings">
+                                <div id="add-group">
+                                    <div class="search-group">
+                                        <input type="text" class="txt-name-group form-control" />
+                                        <i class="fa fa-search"></i>
+                                    </div>
+                                    <a href="javascript:void(0)" class="btn-create-group" title="Thêm nhóm"><i class="material-icons">add</i></a>
+                                </div>
+                                <div id="list-group">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="list-member">
+                        <div class="member-header">
+                            <span>Danh sách thành viên</span>
+                        </div>
+                        <div class="member-body">
+                            <div class="member-search">
+                                <input type="text" placeholder="Nhập từ khóa..." />
+                                <span><i class="fa fa-search"></i></span>
+                            </div>
+                            <div class="list-member-body">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <!-- /.sidebar -->
+        </aside>
+        <!-- =============================================== -->
+        <!-- Content Wrapper. Contains page content -->
+        <div class="content-wrapper">
+            @RenderBody()
+
+            <div class="modal fade bs-example-modal-sm" id="modal-group" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Tạo nhóm</h4>
+                        </div>
+                        <div class="modal-body" style="padding:10px 20px;">
+                            <div class="name-group">
+                                <input placeholder="Nhập tên nhóm" />
+                            </div>
+                            <div class="search-group">
+                                <input type="text" id="text-search-group" placeholder="Tìm kiếm..." />
+                                <i class="fa fa-search"></i>
+                            </div>
+                            <div class="list-user-group"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Thoát</button>
+                            <button type="button" class="btn btn-primary pull-right" id="update-group-user">Lưu</button>
+                            <button type="button" class="btn btn-primary pull-right" id="save-group-user">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="modal-profile" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Thông tin cá nhân</h4>
+                        </div>
+                        <div class="modal-body" style="padding:10px 20px;">
+                            <form>
+                                <div class="box-body">
+                                    <input type="hidden" id="profile-id" />
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="text" id="profile-email" class="form-control" disabled />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Họ tên</label>
+                                        <input type="text" id="profile-fullname" class="form-control" placeholder="Nhập họ tên" />
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="form-group">
+                                            <label>Hình đại diện</label>
+                                            <input type="hidden" id="profile-avatar" />
+                                            <input type="file" id="profile-file-avatar">
+                                            <br />
+                                            <div id="profile-avatar-box">
+                                                <img src="" alt="img-avatar" class="img-responsive" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Thoát</button>
+                            <button type="button" class="btn btn-primary pull-right" id="profile-save">Cập nhật</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade bs-example-modal-sm" id="modal-password" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Đổi mật khẩu</h4>
+                        </div>
+                        <div class="modal-body" style="padding:10px 20px;">
+                            <form>
+                                <div class="box-body">
+                                    <input type="hidden" id="change-password-id" />
+                                    <input type="hidden" id="change-password-code" />
+                                    <div class="form-group">
+                                        <label>Email</label>
+                                        <input type="text" id="change-password-email" class="form-control" disabled />
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Mật khẩu</label>
+                                        <input type="password" id="change-password" class="form-control" placeholder="Mật khẩu" />
+                                        <span class="text-danger err-hide" id="error-change-password">(*) Mật khẩu chưa được nhập!</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nhập lại mật khẩu</label>
+                                        <input type="password" id="change-password-confirm" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                        <span class="text-danger err-hide" id="error-change-password-confirm">(*) Mật khẩu không khớp!</span>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Thoát</button>
+                            <button type="button" class="btn btn-primary pull-right" id="change-password-save">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade bs-example-modal-sm" id="modal-config" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-sm">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                            <h4 class="modal-title" id="myModalLabel">Đổi mật khẩu chung</h4>
+                        </div>
+                        <div class="modal-body" style="padding:10px 20px;">
+                            <form>
+                                <div class="box-body">
+                                    <div class="form-group">
+                                        <label>Mật khẩu</label>
+                                        <input type="password" id="config-password" class="form-control" placeholder="Mật khẩu" />
+                                        <span class="text-danger err-hide" id="error-config-password">(*) Mật khẩu chưa được nhập!</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Nhập lại mật khẩu</label>
+                                        <input type="password" id="config-confirm" class="form-control" placeholder="Nhập lại mật khẩu" />
+                                        <span class="text-danger err-hide" id="error-config-confirm">(*) Mật khẩu không khớp!</span>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Thoát</button>
+                            <button type="button" class="btn btn-primary pull-right" id="config-save">Lưu</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @* ---------- Toastr message ---------- *@
+            <div>
+                <input type="hidden" id="success" value="@TempData["success"]" />
+                <input type="hidden" id="info" value="@TempData["info"]" />
+                <input type="hidden" id="warning" value="@TempData["warning"]" />
+                <input type="hidden" id="error" value="@TempData["error"]" />
+            </div>
+        </div>
+
+        <div id="main-right-bar">
+            <div class="right-bar-header">
+                <a href="javascript:void(0)" id="main-right-bar-hide"><i class="material-icons">clear</i></a>
+                <span>TRÒ CHUYỆN</span>
+            </div>
+            <div class="right-bar-search">
+                <input type="text" placeholder="Tìm kiếm..."/>
+                <i class="fa fa-search"></i>
+            </div>
+            <div id="message"></div>
+        </div>
+    </div>
+    <!-- ./wrapper -->
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @Scripts.Render("~/bundles/scripts")
+    @Scripts.Render("~/bundles/lightgallery")
+    <!-- iCheck -->
+    <script src="~/Content/plugins/iCheck/icheck.min.js"></script>
+    <script src="~/Scripts/jquery.signalR-2.2.3.js"></script>
+    <script src="~/signalr/hubs"></script>
+    <script src="~/Scripts/chat-hub.js"></script>
+    <script src="~/Scripts/common.js"></script>
+    @RenderSection("scripts", required: false)
+    <script>
+        $(document).ready(function () {
+            $('#lightgallery').lightGallery();
+        });
+    </script>
+    <script>
+        $(document).ready(function () {
+
+            $('.sidebar-menu').tree();
+            $('#btn-show-leftbar').click(function () {
+                $('#main-sidebar').toggleClass("main-sidebar-show");
+            });
+
+            $('#modal-group .modal-body input').iCheck({
+                checkboxClass: 'icheckbox_square-blue',
+                radioClass: 'iradio_square-blue',
+                increaseArea: '20%' // optional
+            });
+            $('#list-group').on("click", ".group-dots", function (e) {
+                e.preventDefault();
+                $('#list-group .group-item .right-click').hide();
+                let parent = $(this).parent('div');
+                parent.find('.right-click').show();
+            });
+            $('#list-group').on("click", ".right-close", function (e) {
+                e.preventDefault();
+                $(this).parent('div').hide();
+            });
+            $('#list-group').on("click", ".right-click-item", function (e) {
+                e.preventDefault();
+                $(this).parent('div').hide();
+            });
+
+            $("#sm-sidebar-hide").click(function (e) {
+                e.preventDefault();
+                $('#main-sidebar').removeClass("main-sidebar-show");
+            });
+
+            $('.user-menu').click(function () {
+                $(this).toggleClass('active');
+            });
+
+            $('#top-new-count').click(function () {
+                $('#main-right-bar').addClass('active');
+            });
+
+            $('#main-right-bar-hide').click(function () {
+                $('#main-right-bar').removeClass('active');
+            });
+
+            $('.common-pass').click(function () {
+                $('#modal-config').modal('show');
+            });
+        });
+    </script>
+</body>
+</html>
