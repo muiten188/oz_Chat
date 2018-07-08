@@ -23,7 +23,7 @@ namespace CRMOZ.Web.Api
         [HttpGet]
         public void GetAllUser()
         {
-            chatHub.GetAllUser();
+            //chatHub.GetAllUser();
         }
     }
 }

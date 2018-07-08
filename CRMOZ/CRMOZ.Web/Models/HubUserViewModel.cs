@@ -1,4 +1,6 @@
-﻿namespace CRMOZ.Web.Models
+﻿using CRMOZ.Model.Models;
+
+namespace CRMOZ.Web.Models
 {
     public class HubUserViewModel
     {
@@ -12,7 +14,7 @@
 
         public string Avatar { set; get; }
 
-        public string ConnectionId { set; get; }
+        //public Connection ConnectionId { set; get; }
 
         public bool Connected { set; get; }
 

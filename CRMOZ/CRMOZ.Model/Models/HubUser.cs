@@ -23,8 +23,6 @@ namespace CRMOZ.Model.Models
         [StringLength(256)]
         public string Avatar { set; get; }
 
-        public string ConnectionId { set; get; }
-
         public bool Connected { set; get; }
 
         public virtual ICollection<MessagePrivate> MessagePrivates { set; get; }

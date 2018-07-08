@@ -19,6 +19,7 @@ namespace CRMOZ.Data
         public DbSet<ApplicationUserRoles> ApplicationUserRoles { set; get; }
 
         public DbSet<HubUser> HubUsers { set; get; }
+        public DbSet<Connection> Connection{ set; get; }
         public DbSet<Group> Groups { set; get; }
         public DbSet<HubUserGroup> HubUserGroups { set; get; }
         public DbSet<MessagePrivate> MessagePrivates { set; get; }

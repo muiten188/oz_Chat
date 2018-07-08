@@ -45,11 +45,23 @@ namespace CRMOZ.Web
             using (var db = new OZChatDbContext())
             {
                 var user = db.HubUsers.FirstOrDefault(p => p.UserName == name);
+                Connection oConnection = new Connection();
                 if (user.Connected != true)
                 {
                     Clients.Others.connect(connectId, name, user.FullName);
-                    user.ConnectionId = connectId;
+                    oConnection.UserID = user.ID;
+                    oConnection.ConnectionID = connectId;
+                    db.Connection.Add(oConnection);
                     user.Connected = true;
+                    db.SaveChanges();
+                    CommonStatic.AddOnlineUser(user);
+                }
+                else
+                {
+                    Clients.Others.connect(connectId, name, user.FullName);
+                    oConnection.UserID = user.ID;
+                    oConnection.ConnectionID = connectId;
+                    db.Connection.Add(oConnection);
                     db.SaveChanges();
                     CommonStatic.AddOnlineUser(user);
                 }
@@ -69,29 +81,46 @@ namespace CRMOZ.Web
                 if (user.Connected == true)
                 {
                     Clients.Others.disConnect(name, user.FullName);
-                    user.ConnectionId = "";
-                    user.Connected = false;
+                    var listConnection = db.Connection.Where(p => p.UserID == user.ID).ToList();
+                    Boolean isRemoveConnection = false;
+                    for(var i=0;i< listConnection.Count(); i++)
+                    {
+                        if (listConnection[i].ConnectionID == connectId)
+                        {
+                            db.Connection.Remove(listConnection[i]);
+                            isRemoveConnection = true;
+                        }
+                    }
+                    if(isRemoveConnection==true&&listConnection.Count==1)
+                    {
+                        user.Connected = false;
+                        
+                    }
                     db.SaveChanges();
-                    CommonStatic.RemoveOnlineUser(connectId);
+                    if (isRemoveConnection == true && listConnection.Count == 1)
+                    {
+                        CommonStatic.RemoveOnlineUser(user.ID);
+                    }
+                   
                     CommonStatic.RemoveInteractives(user.ID);
                     CommonStatic.RemoveInteracGroup(user.ID);
                 }
             }
-            LeaveRoom();
+            //LeaveRoom();
         }
 
-        // Hàm load toàn bộ user
+        //// Hàm load toàn bộ user
         public void GetAllUser()
         {
             string id = Context.User.Identity.GetUserId();
             using (var db = new OZChatDbContext())
             {
                 var users = db.HubUsers.Where(p => p.ID != id).ToList();
-                Clients.Caller.allUser(users);
+                Clients.Caller.alluser(users);
             }
         }
 
-        //Hàm lấy danh sách các user đã từng chat với bạn
+        ////Hàm lấy danh sách các user đã từng chat với bạn
         public void GetAllMessageUser()
         {
             int count = 0;
@@ -110,7 +139,6 @@ namespace CRMOZ.Web
                         UserName = user.UserName,
                         FullName = user.FullName,
                         Avatar = user.Avatar,
-                        ConnectionId = user.ConnectionId,
                         Connected = user.Connected,
                         CountNew = item.NewMessage
                     });
@@ -120,7 +148,7 @@ namespace CRMOZ.Web
                 foreach (var item in fromUsers)
                 {
                     var user = db.HubUsers.FirstOrDefault(p => p.ID == item.RecieveUserID);
-                    if (user!=null&&listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
+                    if (user != null && listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
                     {
                         listHubUser.Add(new HubUserViewModel
                         {
@@ -129,7 +157,6 @@ namespace CRMOZ.Web
                             UserName = user.UserName,
                             FullName = user.FullName,
                             Avatar = user.Avatar,
-                            ConnectionId = user.ConnectionId,
                             Connected = user.Connected,
                             CountNew = 0
                         });
@@ -139,8 +166,8 @@ namespace CRMOZ.Web
             Clients.Caller.allMessageUser(listHubUser, count);
         }
 
-        //Hàm lấy danh sách các user đã từng chat với bạn
-        public void GetAllMessageUser(string connectId)
+        ////Hàm lấy danh sách các user đã từng chat với bạn
+        public void GetAllMessageUser(List<Connection> listConnection)
         {
             int count = 0;
             string id = Context.User.Identity.GetUserId();
@@ -158,7 +185,6 @@ namespace CRMOZ.Web
                         UserName = user.UserName,
                         FullName = user.FullName,
                         Avatar = user.Avatar,
-                        ConnectionId = user.ConnectionId,
                         Connected = user.Connected,
                         CountNew = item.NewMessage
                     });
@@ -178,14 +204,17 @@ namespace CRMOZ.Web
                             UserName = user.UserName,
                             FullName = user.FullName,
                             Avatar = user.Avatar,
-                            ConnectionId = user.ConnectionId,
                             Connected = user.Connected,
                             CountNew = 0
                         });
                     }
                 }
             }
-            Clients.Client(connectId).allMessageUser(listHubUser, count);
+            for(var i = 0; i < listConnection.Count(); i++)
+            {
+                Clients.Client(listConnection[i].ConnectionID).allMessageUser(listHubUser, count);
+            }
+            
         }
 
         // ------------------- COMMON -----------------------
@@ -231,7 +260,7 @@ namespace CRMOZ.Web
                     db.SaveChanges();
                 }
 
-                // Kiểm tra user bạn muốn tương tác có đang online không
+                //Kiểm tra user bạn muốn tương tác có đang online không
                 var onlineUser = CommonStatic.OnlineUsers.FirstOrDefault(p => p.ID == userId);
                 CommonStatic.RemoveInteractives(id);
                 if (onlineUser != null)
@@ -267,27 +296,46 @@ namespace CRMOZ.Web
                 //Lấy ra user trong list user đang online
                 var onlineUser = CommonStatic.OnlineUsers.FirstOrDefault(p => p.ID == userId);
                 //Nếu user đang online
+                var listConnectionReceive = db.Connection.Where(p => p.UserID == userId).ToList();
+                var listConnectionSend = db.Connection.Where(p => p.UserID == id).ToList();
                 if (onlineUser != null)
                 {
                     // Nếu user đang online và đang tương tác với mình
                     if (CommonStatic.Interactives.FirstOrDefault(p => p.FromID == userId && p.ReceiveID == id) != null)
                     {
-                        Clients.Caller.messagePrivate(messagePrivate, true);
-                        Clients.Client(onlineUser.ConnectionId).messagePrivate(messagePrivate, false);
-                        AddUserMessagePrivate(id, userId, false, onlineUser.ConnectionId);
+                        for(int i = 0; i < listConnectionSend.Count(); i++)
+                        {
+                            Clients.Client(listConnectionSend[i].ConnectionID).messagePrivate(messagePrivate, true);
+                        }
+                        
+                        for(int i = 0; i < listConnectionReceive.Count; i++)
+                        {
+                            Clients.Client(listConnectionReceive[i].ConnectionID).messagePrivate(messagePrivate, false);
+                        }
+                        AddUserMessagePrivate(id, userId, false, listConnectionReceive);
                     }
                     // Nếu user đang online nhưng không tương tác với mình.
                     else
                     {
-                        Clients.Caller.messagePrivate(messagePrivate, true);
-                        Clients.Client(onlineUser.ConnectionId).notificationMessage(fullname, message);
-                        AddUserMessagePrivate(id, userId, true, onlineUser.ConnectionId);
+                        for (int i = 0; i < listConnectionSend.Count(); i++)
+                        {
+                            Clients.Client(listConnectionSend[i].ConnectionID).messagePrivate(messagePrivate, true);
+                        }
+                        for (int i = 0; i < listConnectionReceive.Count; i++)
+                        {
+                            Clients.Client(listConnectionReceive[i].ConnectionID).notificationMessage(fullname, message);
+                        }
+                        
+                        AddUserMessagePrivate(id, userId, true, listConnectionReceive);
                     }
                 }
                 // Người mình nhắn tin đang ko online.
                 else
                 {
-                    Clients.Caller.messagePrivate(messagePrivate, true);
+                    for (int i = 0; i < listConnectionSend.Count(); i++)
+                    {
+                        Clients.Client(listConnectionSend[i].ConnectionID).messagePrivate(messagePrivate, true);
+                    }
                     var user = db.UserMessagePrivates.FirstOrDefault(p => p.FromUserID == id && p.RecieveUserID == userId);
                     if (user == null)
                     {
@@ -305,7 +353,7 @@ namespace CRMOZ.Web
             }
         }
 
-        private void AddUserMessagePrivate(string fromUserId, string recieveId, bool isNew, string connectId)
+        private void AddUserMessagePrivate(string fromUserId, string recieveId, bool isNew,List<Connection> listConnection)
         {
             using (var db = new OZChatDbContext())
             {
@@ -318,18 +366,22 @@ namespace CRMOZ.Web
                     // 2 user đang không tương tác với nhau
                     if (isNew == true)
                     {
-                        Clients.Client(connectId).addCountMessagePrivate(fromUserId);
+                        for(var i = 0; i < listConnection.Count(); i++)
+                        {
+                            Clients.Client(listConnection[i].ConnectionID).addCountMessagePrivate(fromUserId);
+                        }
+                        
                         db.UserMessagePrivates.Add(new UserMessagePrivate { FromUserID = fromUserId, RecieveUserID = recieveId, NewMessage = 1 });
                         db.SaveChanges();
                         GetAllMessageUser();
-                        GetAllMessageUser(connectId);
+                        GetAllMessageUser(listConnection);
                     }
                     else
                     {
                         db.UserMessagePrivates.Add(new UserMessagePrivate { FromUserID = fromUserId, RecieveUserID = recieveId, NewMessage = 0 });
                         db.SaveChanges();
                         GetAllMessageUser();
-                        GetAllMessageUser(connectId);
+                        GetAllMessageUser(listConnection);
                     }
 
                 }
@@ -338,7 +390,10 @@ namespace CRMOZ.Web
                     // Nếu 2 user đã từng nhắn tin với nhau và đang không tương tác với nhau
                     if (isNew == true)
                     {
-                        Clients.Client(connectId).addCountMessagePrivate(fromUserId);
+                        for(int i= 0; i < listConnection.Count(); i++)
+                        {
+                            Clients.Client(listConnection[i].ConnectionID).addCountMessagePrivate(fromUserId);
+                        }
                         user.NewMessage += 1;
                         db.SaveChanges();
                     }
@@ -401,10 +456,14 @@ namespace CRMOZ.Web
                     if (onlineUser != null)
                     {
                         // Nếu user đang không tương tác với nhóm
+                        var listConnection = _db.Connection.Where(p => p.UserID == item.UserID).ToList();
                         if (CommonStatic.InteracGroups.FirstOrDefault(p => p.UserID == item.UserID && p.GroupID == groupId) == null)
                         {
                             // Cập nhật lại số tin nhắn chưa đọc
-                            Clients.Client(onlineUser.ConnectionId).addCountMessageGroup(groupId);
+                            for(int i = 0; i < listConnection.Count(); i++)
+                            {
+                                Clients.Client(listConnection[i].ConnectionID).addCountMessageGroup(groupId);
+                            }
                             //Lấy ra 1 NewMessageGroup thoa mãn điều kiện
                             var messGroup = _db.NewMessageGroups.FirstOrDefault(p => p.UserID == item.UserID && p.GroupID == groupId);
                             // Nếu đã tồn tại thì cộng thêm 1

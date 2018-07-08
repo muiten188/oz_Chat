@@ -143,16 +143,16 @@ namespace CRMOZ.Web.Controllers
                 if (result.Succeeded)
                 {
                     var user = await _userManager.FindByEmailAsync(model.Email);
-                    var hubUser = new HubUser()
-                    {
-                        ID = user.Id,
-                        Email = user.Email,
-                        UserName = user.UserName,
-                        FullName = user.FullName,
-                        Avatar = user.Avartar,
-                        ConnectionId = "",
-                        Connected = false
-                    };
+                    var hubUser = new HubUser();
+                    //{
+                    //    ID = user.Id,
+                    //    Email = user.Email,
+                    //    UserName = user.UserName,
+                    //    FullName = user.FullName,
+                    //    Avatar = user.Avartar,
+                    //    ConnectionId = new List<Connection>(),
+                    //    Connected = false
+                    //};
                     _dbContext.HubUsers.Add(hubUser);
                     _dbContext.SaveChanges();
                     
@@ -384,21 +384,21 @@ namespace CRMOZ.Web.Controllers
         public ActionResult LogOff()
         {
             var hubContext = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
-            using (var db = new OZChatDbContext())
-            {
-                string id = HttpContext.User.Identity.GetUserId();
-                var user = db.HubUsers.FirstOrDefault(p => p.ID == id);
-                if (user.Connected == true)
-                {
-                    hubContext.Clients.All.disConnect(user.UserName, user.FullName);
-                    user.ConnectionId = "";
-                    user.Connected = false;
-                    db.SaveChanges();
-                    CommonStatic.RemoveOnlineUser(user.ConnectionId);
-                    CommonStatic.RemoveInteractives(user.ID);
-                    CommonStatic.RemoveInteracGroup(user.ID);
-                }
-            }
+            //using (var db = new OZChatDbContext())
+            //{
+            //    string id = HttpContext.User.Identity.GetUserId();
+            //    var user = db.HubUsers.FirstOrDefault(p => p.ID == id);
+            //    if (user.Connected == true)
+            //    {
+            //        hubContext.Clients.All.disConnect(user.UserName, user.FullName);
+            //        user.ConnectionId = "";
+            //        user.Connected = false;
+            //        db.SaveChanges();
+            //        CommonStatic.RemoveOnlineUser(user.ConnectionId);
+            //        CommonStatic.RemoveInteractives(user.ID);
+            //        CommonStatic.RemoveInteracGroup(user.ID);
+            //    }
+            //}
 
             _authManager.SignOut(DefaultAuthenticationTypes.ApplicationCookie);
             return RedirectToAction("Login", "Account");

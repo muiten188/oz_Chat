@@ -18,18 +18,18 @@ namespace CRMOZ.Web.Common
                 OnlineUsers = new List<HubUser>();
             }
 
-            if(OnlineUsers.FirstOrDefault(p => p.ConnectionId == hubUser.ConnectionId) == null)
+            if (OnlineUsers.FirstOrDefault(p => p.ID == hubUser.ID) == null)
             {
                 OnlineUsers.Add(hubUser);
             }
         }
 
-        public static void RemoveOnlineUser(string connectId)
+        public static void RemoveOnlineUser(string userID)
         {
             if (OnlineUsers != null)
             {
-                var onlineUser = OnlineUsers.FirstOrDefault(p => p.ConnectionId == connectId);
-                if(onlineUser != null)
+                var onlineUser = OnlineUsers.FirstOrDefault(p => p.ID == userID);
+                if (onlineUser != null)
                 {
                     OnlineUsers.Remove(onlineUser);
                 }

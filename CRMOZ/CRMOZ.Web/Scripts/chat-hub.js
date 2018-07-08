@@ -125,7 +125,8 @@ hub.client.messagePrivate = function (message, isMe) {
         else {
             let item = $('.message-right:last-child');
             let strDate = item.find('.message-item-time').data('time');
-            if (message.StrDateTime == strDate) {
+            
+            if (false&&message.StrDateTime == strDate) {
                 let htmlChild = '<span>' + message.Content + '</span>';
                 item.find('.item-text').append(htmlChild);
             }
@@ -169,7 +170,7 @@ hub.client.messagePrivate = function (message, isMe) {
         else {
             let item = $('.message-left:last-child');
             let strDate = item.find('.message-item-time').data('time');
-            if (message.StrDateTime == strDate) {
+            if (false&&message.StrDateTime == strDate) {
                 let htmlChild = '<span>' + message.Content + '</span>';
                 item.find('.item-text').append(htmlChild);
             }

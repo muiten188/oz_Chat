@@ -3,6 +3,7 @@ namespace CRMOZ.Data.Migrations
     using CRMOZ.Model.Models;
     using Microsoft.AspNet.Identity;
     using Microsoft.AspNet.Identity.EntityFramework;
+    using System.Collections.Generic;
     using System.Data.Entity.Migrations;
     using System.Linq;
 
@@ -15,8 +16,8 @@ namespace CRMOZ.Data.Migrations
 
         protected override void Seed(OZChatDbContext context)
         {
-            CreateUser(context);
-            CreateHubUser(context);
+            //CreateUser(context);
+            //CreateHubUser(context);
 
         }
 
@@ -48,15 +49,16 @@ namespace CRMOZ.Data.Migrations
             var user = context.Users.FirstOrDefault(p => p.Email == "oz123@gmail.com");
             if(user != null)
             {
-                var hubUser = new HubUser(){
-                    ID = user.Id,
-                    Email = user.Email,
-                    UserName = user.UserName,
-                    FullName = user.FullName,
-                    Avatar = user.Avartar,
-                    ConnectionId = "",
-                    Connected = false
-                };
+                var hubUser = new HubUser();
+                //{
+                //    ID = user.Id,
+                //    Email = user.Email,
+                //    UserName = user.UserName,
+                //    FullName = user.FullName,
+                //    Avatar = user.Avartar,
+                //    ConnectionId = new List<Connection>(),
+                //    Connected = false
+                //};
                 context.HubUsers.Add(hubUser);
                 context.SaveChanges();
             }
