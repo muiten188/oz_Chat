@@ -48,7 +48,7 @@ namespace CRMOZ.Web
                 Connection oConnection = new Connection();
                 if (user.Connected != true)
                 {
-                    Clients.Others.connect(connectId, name, user.FullName);
+                    Clients.Others.connect(connectId, name, user.FullName,user.ID);
                     oConnection.UserID = user.ID;
                     oConnection.ConnectionID = connectId;
                     db.Connection.Add(oConnection);
@@ -58,7 +58,7 @@ namespace CRMOZ.Web
                 }
                 else
                 {
-                    Clients.Others.connect(connectId, name, user.FullName);
+                    Clients.Others.connect(connectId, name, user.FullName, user.ID);
                     oConnection.UserID = user.ID;
                     oConnection.ConnectionID = connectId;
                     db.Connection.Add(oConnection);
@@ -80,7 +80,7 @@ namespace CRMOZ.Web
                 var user = db.HubUsers.FirstOrDefault(p => p.UserName == name);
                 if (user.Connected == true)
                 {
-                    Clients.Others.disConnect(name, user.FullName);
+                    Clients.Others.disConnect(name, user.FullName, user.ID);
                     var listConnection = db.Connection.Where(p => p.UserID == user.ID).ToList();
                     Boolean isRemoveConnection = false;
                     for(var i=0;i< listConnection.Count(); i++)
