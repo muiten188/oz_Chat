@@ -40,16 +40,17 @@ namespace WebApisTokenAuth
 
         }
 
-        public static AuthenticationProperties CreateProperties(string username, bool isAdmin)
+        public static AuthenticationProperties CreateProperties(ApplicationUser user, bool isAdmin)
         {
             IDictionary<string, string> data = new Dictionary<string, string>
             {
-                { "username", username },
+                { "username", user.UserName },
             };
             if (isAdmin)
             {
                 data.Add("isAdmin", "true");
             }
+            data.Add("userID", user.Id);
             return new AuthenticationProperties(data);
         }
 
@@ -66,13 +67,19 @@ namespace WebApisTokenAuth
                 context.SetError("invalid_grant", "The user name or password is incorrect.");
                 return;
             }
+
+            ClaimsIdentity oAuthIdentity = await userManager.CreateIdentityAsync(user,
+                context.Options.AuthenticationType);
+
+            ClaimsIdentity cookiesIdentity = await userManager.CreateIdentityAsync(user,
+                CookieAuthenticationDefaults.AuthenticationType);
   
-            var oauthIdentity = await user.GenerateUserIdentityAsync(userManager);
-            var cookiesIdentity = await user.GenerateUserIdentityAsync(userManager);
+            //var oauthIdentity = await user.GenerateUserIdentityAsync(userManager);
+            //var cookiesIdentity = await user.GenerateUserIdentityAsync(userManager);
 
             bool isAdmin = await userManager.IsInRoleAsync(user.Id, "Administrator");
-            AuthenticationProperties properties = CreateProperties(user.UserName, isAdmin);
-            var ticket = new AuthenticationTicket(oauthIdentity, properties);
+            AuthenticationProperties properties = CreateProperties(user, isAdmin);
+            var ticket = new AuthenticationTicket(oAuthIdentity, properties);
             context.Validated(ticket);
             context.Request.Context.Authentication.SignIn(cookiesIdentity);
 
@@ -95,7 +102,18 @@ namespace WebApisTokenAuth
             //    return;
             //}
         }
+        public override Task TokenEndpoint(OAuthTokenEndpointContext context)
+        {
+            foreach (KeyValuePair<string, string> property in context.Properties.Dictionary)
+            {
+                context.AdditionalResponseParameters.Add(property.Key, property.Value);
+            }
+
+            return Task.FromResult<object>(null);
+        }
     }
+
+    
 
     public class RefreshTokenProvider : IAuthenticationTokenProvider
     {
