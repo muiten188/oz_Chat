@@ -65,9 +65,9 @@ namespace CRMOZ.Web
                     db.SaveChanges();
                     CommonStatic.AddOnlineUser(user);
                 }
-                GetAllMessageUser();
                 GetAllGroup();
                 GetAllUser();
+                GetAllMessageUser();
                 JoinRoom();
             }
         }
@@ -123,33 +123,17 @@ namespace CRMOZ.Web
         ////Hàm lấy danh sách các user đã từng chat với bạn
         public void GetAllMessageUser()
         {
-            int count = 0;
-            string id = Context.User.Identity.GetUserId();
-            List<HubUserViewModel> listHubUser = new List<HubUserViewModel>();
-            using (var db = new OZChatDbContext())
+            try
             {
-                var recieveUsers = db.UserMessagePrivates.Where(p => p.RecieveUserID == id);
-                foreach (var item in recieveUsers)
+                int count = 0;
+                string id = Context.User.Identity.GetUserId();
+                List<HubUserViewModel> listHubUser = new List<HubUserViewModel>();
+                using (var db = new OZChatDbContext())
                 {
-                    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.FromUserID);
-                    listHubUser.Add(new HubUserViewModel
+                    var recieveUsers = db.UserMessagePrivates.Where(p => p.RecieveUserID == id);
+                    foreach (var item in recieveUsers)
                     {
-                        ID = user.ID,
-                        Email = user.Email,
-                        UserName = user.UserName,
-                        FullName = user.FullName,
-                        Avatar = user.Avatar,
-                        Connected = user.Connected,
-                        CountNew = item.NewMessage
-                    });
-                    count += item.NewMessage;
-                }
-                var fromUsers = db.UserMessagePrivates.Where(p => p.FromUserID == id);
-                foreach (var item in fromUsers)
-                {
-                    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.RecieveUserID);
-                    if (user != null && listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
-                    {
+                        var user = db.HubUsers.FirstOrDefault(p => p.ID == item.FromUserID);
                         listHubUser.Add(new HubUserViewModel
                         {
                             ID = user.ID,
@@ -158,26 +142,51 @@ namespace CRMOZ.Web
                             FullName = user.FullName,
                             Avatar = user.Avatar,
                             Connected = user.Connected,
-                            CountNew = 0
+                            CountNew = item.NewMessage
                         });
+                        count += item.NewMessage;
+                    }
+                    var fromUsers = db.UserMessagePrivates.Where(p => p.FromUserID == id);
+                    foreach (var item in fromUsers)
+                    {
+                        var user = db.HubUsers.FirstOrDefault(p => p.ID == item.RecieveUserID);
+                        if (user != null && listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
+                        {
+                            listHubUser.Add(new HubUserViewModel
+                            {
+                                ID = user.ID,
+                                Email = user.Email,
+                                UserName = user.UserName,
+                                FullName = user.FullName,
+                                Avatar = user.Avatar,
+                                Connected = user.Connected,
+                                CountNew = 0
+                            });
+                        }
                     }
                 }
+                Clients.Caller.allMessageUser(listHubUser, count);
             }
-            Clients.Caller.allMessageUser(listHubUser, count);
+            catch (Exception e)
+            {
+
+                throw;
+            }
+            
         }
 
         ////Hàm lấy danh sách các user đã từng chat với bạn
-        public void GetAllMessageUser(List<Connection> listConnection)
+        public void GetAllMessageUser(string receivedID,List<Connection> listConnection)
         {
             int count = 0;
             string id = Context.User.Identity.GetUserId();
             List<HubUserViewModel> listHubUser = new List<HubUserViewModel>();
             using (var db = new OZChatDbContext())
             {
-                var recieveUsers = db.UserMessagePrivates.Where(p => p.RecieveUserID == id);
+                var recieveUsers = db.UserMessagePrivates.Where(p => p.RecieveUserID == receivedID);
                 foreach (var item in recieveUsers)
                 {
-                    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.RecieveUserID);
+                    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.FromUserID);
                     listHubUser.Add(new HubUserViewModel
                     {
                         ID = user.ID,
@@ -186,29 +195,29 @@ namespace CRMOZ.Web
                         FullName = user.FullName,
                         Avatar = user.Avatar,
                         Connected = user.Connected,
-                        CountNew = item.NewMessage
+                        CountNew = item.NewMessage + 1
                     });
 
-                    count += item.NewMessage;
+                    count += item.NewMessage+1;
                 }
-                var fromUsers = db.UserMessagePrivates.Where(p => p.FromUserID == id);
-                foreach (var item in fromUsers)
-                {
-                    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.FromUserID);
-                    if (listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
-                    {
-                        listHubUser.Add(new HubUserViewModel
-                        {
-                            ID = user.ID,
-                            Email = user.Email,
-                            UserName = user.UserName,
-                            FullName = user.FullName,
-                            Avatar = user.Avatar,
-                            Connected = user.Connected,
-                            CountNew = 0
-                        });
-                    }
-                }
+                //var fromUsers = db.UserMessagePrivates.Where(p => p.FromUserID == id);
+                //foreach (var item in fromUsers)
+                //{
+                //    var user = db.HubUsers.FirstOrDefault(p => p.ID == item.FromUserID);
+                //    if (listHubUser.FirstOrDefault(p => p.ID == user.ID) == null)
+                //    {
+                //        listHubUser.Add(new HubUserViewModel
+                //        {
+                //            ID = user.ID,
+                //            Email = user.Email,
+                //            UserName = user.UserName,
+                //            FullName = user.FullName,
+                //            Avatar = user.Avatar,
+                //            Connected = user.Connected,
+                //            CountNew = 0
+                //        });
+                //    }
+                //}
             }
             for(var i = 0; i < listConnection.Count(); i++)
             {
@@ -349,7 +358,7 @@ namespace CRMOZ.Web
 
                 db.MessagePrivates.Add(messagePrivate);
                 db.SaveChanges();
-                GetAllMessageUser();
+                //GetAllMessageUser(userId,listConnectionReceive);
             }
         }
 
@@ -374,14 +383,14 @@ namespace CRMOZ.Web
                         db.UserMessagePrivates.Add(new UserMessagePrivate { FromUserID = fromUserId, RecieveUserID = recieveId, NewMessage = 1 });
                         db.SaveChanges();
                         GetAllMessageUser();
-                        GetAllMessageUser(listConnection);
+                        GetAllMessageUser(recieveId,listConnection);
                     }
                     else
                     {
                         db.UserMessagePrivates.Add(new UserMessagePrivate { FromUserID = fromUserId, RecieveUserID = recieveId, NewMessage = 0 });
                         db.SaveChanges();
                         GetAllMessageUser();
-                        GetAllMessageUser(listConnection);
+                        GetAllMessageUser(recieveId,listConnection);
                     }
 
                 }
@@ -394,6 +403,8 @@ namespace CRMOZ.Web
                         {
                             Clients.Client(listConnection[i].ConnectionID).addCountMessagePrivate(fromUserId);
                         }
+                        GetAllMessageUser();
+                        GetAllMessageUser(recieveId, listConnection);
                         user.NewMessage += 1;
                         db.SaveChanges();
                     }
@@ -780,12 +791,12 @@ namespace CRMOZ.Web
             return null;
         }
 
-        private void removeInteracGroup()
+        public void removeInteracGroup()
         {
             string userId = Context.User.Identity.GetUserId();
             CommonStatic.RemoveInteracGroup(userId);
         }
-        private void removeInteracPrivate()
+        public void removeInteracPrivate()
         {
             string userId = Context.User.Identity.GetUserId();
             Clients.Caller.userInteractive(userId, false);
