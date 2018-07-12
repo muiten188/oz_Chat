@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using WebApisTokenAuth;
 
 namespace CRMOZ.Web.Controllers
 {
@@ -16,6 +17,7 @@ namespace CRMOZ.Web.Controllers
         }
 
         // GET api/values/5
+        [CAuthorizeAttribute]
         public string Get(int id)
         {
             return "value";
