@@ -7,6 +7,7 @@ using CRMOZ.Model.Models;
 using CRMOZ.Web.Providers;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.SignalR;
+using Microsoft.AspNet.SignalR.Hubs;
 using Microsoft.Owin;
 using Microsoft.Owin.Cors;
 using Microsoft.Owin.Security;
@@ -16,6 +17,7 @@ using Owin;
 using System.Reflection;
 using System.Web;
 using System.Web.Mvc;
+using WebApisTokenAuth;
 
 [assembly: OwinStartup(typeof(CRMOZ.Web.Startup))]
 
@@ -84,6 +86,9 @@ namespace CRMOZ.Web
                 // since this branch already runs under the "/signalr"
                 // path.
                 map.RunSignalR(hubConfiguration);
+                var authorizer = new CAuthorizeAttribute();
+                var module = new AuthorizeModule(authorizer, authorizer);
+                GlobalHost.HubPipeline.AddModule(module);
             });
         }
     }
