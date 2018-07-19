@@ -60,6 +60,7 @@
     <Compile Include="Models\ApplicationUserGroup.cs" />
     <Compile Include="Models\ApplicationUserRoles.cs" />
     <Compile Include="Models\Connection.cs" />
+    <Compile Include="Models\FcmConnection.cs" />
     <Compile Include="Models\Group.cs" />
     <Compile Include="Models\HubUser.cs" />
     <Compile Include="Models\HubUserGroup.cs" />

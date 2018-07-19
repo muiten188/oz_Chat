@@ -20,6 +20,7 @@ namespace CRMOZ.Data
 
         public DbSet<HubUser> HubUsers { set; get; }
         public DbSet<Connection> Connection{ set; get; }
+        public DbSet<FcmConnection> FcmConnection { set; get; }
         public DbSet<Group> Groups { set; get; }
         public DbSet<HubUserGroup> HubUserGroups { set; get; }
         public DbSet<MessagePrivate> MessagePrivates { set; get; }

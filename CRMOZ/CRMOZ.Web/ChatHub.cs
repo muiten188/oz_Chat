@@ -2,6 +2,7 @@
 using CRMOZ.Model.Models;
 using CRMOZ.Web.Common;
 using CRMOZ.Web.Extensions;
+using CRMOZ.Web.Fcm;
 using CRMOZ.Web.Models;
 using Microsoft.AspNet.Identity;
 using Microsoft.AspNet.SignalR;
@@ -12,11 +13,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml.Linq;
+using WebApisTokenAuth;
 
 namespace CRMOZ.Web
 {
+    [CAuthorize]
     public class ChatHub : Hub
     {
+        public static FcmServer fcmServer = new FcmServer();
         public override Task OnConnected()
         {
             string name = Context.User.Identity.Name;
@@ -37,6 +41,24 @@ namespace CRMOZ.Web
 
             UserDisConnect(id, name);
             return base.OnDisconnected(stopCalled);
+        }
+
+        public void addDeviceTokenFCM(string deviceToken)
+        {
+            string id = Context.User.Identity.GetUserId();
+            string name = Context.User.Identity.Name;
+            using (var db = new OZChatDbContext())
+            {
+                var hubUser = db.HubUsers.FirstOrDefault(p => p.UserName == name);
+                if (hubUser!=null&&db.FcmConnection.Where(p => p.DeviceToken == deviceToken)==null)
+                {
+                    FcmConnection oFcmConnection = new FcmConnection();
+                    oFcmConnection.DeviceToken = deviceToken;
+                    oFcmConnection.UserID = hubUser.ID;
+                    db.FcmConnection.Add(oFcmConnection);
+                    db.SaveChanges();
+                }
+            }
         }
 
         // Hàm xử lý nếu có user connect
@@ -334,7 +356,12 @@ namespace CRMOZ.Web
                         {
                             Clients.Client(listConnectionReceive[i].ConnectionID).notificationMessage(fullname, message);
                         }
-                        
+                        List<FcmConnection> listFcmConnection = db.FcmConnection.Where(p => p.UserID == userId).ToList();
+                        for(var i=0;i< listFcmConnection.Count; i++)
+                        {
+                            FcmConnection oFcmConnection = listFcmConnection[i];
+                            fcmServer.pushNotification(oFcmConnection.DeviceToken, fullname, message);
+                        }
                         AddUserMessagePrivate(id, userId, true, listConnectionReceive);
                     }
                 }
