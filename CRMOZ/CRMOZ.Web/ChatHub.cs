@@ -50,7 +50,8 @@ namespace CRMOZ.Web
             using (var db = new OZChatDbContext())
             {
                 var hubUser = db.HubUsers.FirstOrDefault(p => p.UserName == name);
-                if (hubUser!=null&&db.FcmConnection.Where(p => p.DeviceToken == deviceToken)==null)
+                List<FcmConnection> listFcmConnection = db.FcmConnection.Where(p => p.DeviceToken == deviceToken).ToList();
+                if (hubUser!=null&& listFcmConnection.Count== 0)
                 {
                     FcmConnection oFcmConnection = new FcmConnection();
                     oFcmConnection.DeviceToken = deviceToken;
@@ -360,7 +361,7 @@ namespace CRMOZ.Web
                         for(var i=0;i< listFcmConnection.Count; i++)
                         {
                             FcmConnection oFcmConnection = listFcmConnection[i];
-                            fcmServer.pushNotification(oFcmConnection.DeviceToken, fullname, message);
+                            fcmServer.pushNotificationToUser(oFcmConnection.DeviceToken, fullname, message, id);
                         }
                         AddUserMessagePrivate(id, userId, true, listConnectionReceive);
                     }

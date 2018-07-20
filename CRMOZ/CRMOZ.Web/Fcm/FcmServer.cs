@@ -10,7 +10,7 @@ namespace CRMOZ.Web.Fcm
 {
     public class FcmServer
     {
-        public void pushNotification(string deviceId,string txttitle, string txtmsg)
+        public void pushNotificationToUser(string deviceId,string txttitle, string txtmsg,string userId)
         {
             string serverKey = "AAAAreJXXWQ:APA91bEmoEKQxcxZ02AqWBkeonvKCH5ceZbbsP_wV6EuCHVLb-ByPS0OfEsVt0I7bx1bdL1WfNONCm4WD6qYv3tgAmIZOqYSW3t5xvkV03sQIOr5zsttkCEbCRSi2Dq_Cp7dc4E0f6foWjCiQfRAqGVt-wqm8VFNJA";
 
@@ -25,8 +25,9 @@ namespace CRMOZ.Web.Fcm
                 httpWebRequest.Method = "POST";
                 oFcm oFcm = new oFcm();
                 oFcm.to = deviceId;
-                oFcm.notification.title = txttitle;
-                oFcm.notification.body = txtmsg;
+                oFcm.data.custom_notification.title = txttitle;
+                oFcm.data.custom_notification.body = txtmsg;
+                oFcm.data.custom_notification.userID = userId;
                 using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
                 {
                     string json = new JavaScriptSerializer().Serialize(oFcm);
