@@ -22,7 +22,7 @@ namespace CRMOZ.Web.Fcm
         public Boolean show_in_foreground = true;
         public Guid id;
         public string userID;
-        public int groupID;
+        public string groupID;
     }
     public class notificationCustom
     {

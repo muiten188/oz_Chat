@@ -517,6 +517,25 @@ namespace CRMOZ.Web
                             }
                         }
                     }
+                    var oInteracGroup = CommonStatic.InteracGroups.FirstOrDefault(p => p.UserID == item.UserID && p.GroupID == groupId);
+                    if (oInteracGroup == null)
+                    {
+                            try
+                            {
+ 
+                                var listFcmConnection = _db.FcmConnection.Where(p => p.UserID == item.UserID).ToList();                      
+                                    for (var j = 0; j < listFcmConnection.Count; j++)
+                                    {
+                                        FcmConnection oFcmConnection = listFcmConnection[j];
+                                        fcmServer.pushNotificationToGroup(oFcmConnection.DeviceToken, fullname, message, groupId.ToString());
+                                    }
+                            }
+                            catch (Exception e)
+                            {
+
+                            }  
+                    }
+
                 }
                 _db.MessageGroups.Add(newMessage);
                 _db.SaveChanges();
