@@ -3,6 +3,7 @@ using CRMOZ.Model.Models;
 using CRMOZ.Web.Common;
 using CRMOZ.Web.Extensions;
 using CRMOZ.Web.Models;
+using CRMOZ.Web.Providers;
 using Microsoft.AspNet.Identity;
 using System;
 using System.Collections.Generic;
@@ -21,7 +22,24 @@ namespace CRMOZ.Web.Controllers
         {
             return View();
         }
-
+        [ApiAuthorize]
+        [HttpPost]
+        public void removeFCMToken(FormCollection fc)
+        {
+            using (var db = new OZChatDbContext())
+            {
+                var fcmToken = fc["fcmToken"];
+                if (fcmToken != null)
+                {
+                    FcmConnection oFcmConnection = db.FcmConnection.Where(p => p.DeviceToken == fcmToken).FirstOrDefault();
+                    if (oFcmConnection != null)
+                    {
+                        db.FcmConnection.Remove(oFcmConnection);
+                        db.SaveChanges();
+                    }
+                }
+            }
+        }
         [HttpPost]
         public async Task<JsonResult> UploadImage(FormCollection fc)
         {

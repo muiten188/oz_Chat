@@ -45,6 +45,8 @@ namespace WebApisTokenAuth
             IDictionary<string, string> data = new Dictionary<string, string>
             {
                 { "username", user.UserName },
+                { "avartar", user.Avartar  },
+                { "fullName", user.FullName }
             };
             if (isAdmin)
             {

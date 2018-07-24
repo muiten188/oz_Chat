@@ -284,6 +284,7 @@
     <Compile Include="Models\RoleViewModel.cs" />
     <Compile Include="Models\UserGroupViewModel.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Providers\ApiAuthorizeAttribute.cs" />
     <Compile Include="Providers\AuthorizationServiceProvider.cs" />
     <Compile Include="Providers\AuthorizeAttribute.cs" />
     <Compile Include="Providers\QueryStringOAuthBearerProvider.cs" />
