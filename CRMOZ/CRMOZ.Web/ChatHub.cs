@@ -373,6 +373,14 @@ namespace CRMOZ.Web
                     {
                         Clients.Client(listConnectionSend[i].ConnectionID).messagePrivate(messagePrivate, true);
                     }
+
+                    List<FcmConnection> listFcmConnection = db.FcmConnection.Where(p => p.UserID == userId).ToList();
+                    for (var i = 0; i < listFcmConnection.Count; i++)
+                    {
+                        FcmConnection oFcmConnection = listFcmConnection[i];
+                        fcmServer.pushNotificationToUser(oFcmConnection.DeviceToken, fullname, message, id);
+                    }
+
                     var user = db.UserMessagePrivates.FirstOrDefault(p => p.FromUserID == id && p.RecieveUserID == userId);
                     if (user == null)
                     {
@@ -651,8 +659,9 @@ namespace CRMOZ.Web
         }
 
         //Cập nhật thành viên của nhóm
-        public async Task updateUserGroup(List<string> listChecked, string groupName)
+        public async Task updateUserGroup(List<string> listChecked, string groupName, List<string> listUnCheck = null)
         {
+            listUnCheck = listUnCheck ?? new List<String>();
             if (!string.IsNullOrEmpty(groupName))
             {
                 Group group = null;
@@ -672,23 +681,34 @@ namespace CRMOZ.Web
                         foreach (var item in listChecked)
                         {
                             var user = _db.Users.FirstOrDefault(p => p.UserName == item);
-
                             if (user != null)
                             {
-                                var groupUser = _db.HubUserGroups.FirstOrDefault(p => p.GroupID == group.ID && p.UserID == user.Id);
+                                HubUserGroup groupUser = _db.HubUserGroups.FirstOrDefault(p => p.GroupID == group.ID && p.UserID == user.Id);
                                 if (groupUser == null)
                                 {
                                     _db.HubUserGroups.Add(new HubUserGroup { GroupID = group.ID, UserID = user.Id, IsCreater = false });
                                 }
                             }
                         }
-                        _db.SaveChanges();
-                        await GetUserOfGroup(group.ID);
-                        await Clients.Caller.alertMessage("Thêm mới thành viên thành công!", true);
+                        foreach (var item in listUnCheck)
+                        {
+                            var user = _db.Users.FirstOrDefault(p => p.UserName == item);
+                            if (user != null)
+                            {
+                                HubUserGroup groupUser = _db.HubUserGroups.FirstOrDefault(p => p.GroupID == group.ID && p.UserID == user.Id);
+                                if (groupUser != null)
+                                {
+                                    _db.HubUserGroups.Remove(groupUser);
+                                }
+                            }
+                        }
+                            _db.SaveChanges();
+                            await GetUserOfGroup(group.ID);
+                            await Clients.Caller.alertMessage("Thêm mới thành viên thành công!", true);
+                        }
                     }
                 }
             }
-        }
 
         // Xóa thành viên khỏi nhóm
         public async Task removeUserFromGroup(string userId, int groupId, string groupName)

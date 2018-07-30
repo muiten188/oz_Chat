@@ -61,34 +61,43 @@ namespace CRMOZ.Web.Controllers
                 success = true;
             }
 
-            var chatId = fc["chatId"];
-            var groupName = fc["groupName"];
+            try
+            { 
+                
+                var chatId = fc["chatId"];
+                var groupName = fc["groupName"];
 
-            if (success == true)
-            {
-                if (!string.IsNullOrEmpty(groupName) && !string.IsNullOrEmpty(chatId))
+                if (success == true)
                 {
-                    int groupId = int.Parse(chatId);
-                    string[] url = listUrl.ToArray();
-                    string temp = string.Join(",", url);
-                    await addMessageToGroup(groupId, groupName, temp.ToString());
+                    if (!string.IsNullOrEmpty(groupName) && !string.IsNullOrEmpty(chatId))
+                    {
+                        int groupId = int.Parse(chatId);
+                        string[] url = listUrl.ToArray();
+                        string temp = string.Join(",", url);
+                        await addMessageToGroup(groupId, groupName, temp.ToString());
+                    }
+                    else
+                    {
+                        string[] url = listUrl.ToArray();
+                        string temp = string.Join(",", url);
+                        addMessagePrivate(chatId, temp.ToString());
+                    }
                 }
                 else
                 {
-                    string[] url = listUrl.ToArray();
-                    string temp = string.Join(",", url);
-                    addMessagePrivate(chatId, temp.ToString());
+                    string id = HttpContext.User.Identity.GetUserId();
+                    var hubContext = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
+                    var meUser = CommonStatic.OnlineUsers.FirstOrDefault(p => p.ID == id);
+                    //hubContext.Clients.Client(meUser.ConnectionId).alertMessage(message, false);
                 }
+                return Json(new { success, message, data = listUrl }, JsonRequestBehavior.AllowGet);
             }
-            else
+            catch (Exception e)
             {
-                string id = HttpContext.User.Identity.GetUserId();
-                var hubContext = Microsoft.AspNet.SignalR.GlobalHost.ConnectionManager.GetHubContext<ChatHub>();
-                var meUser = CommonStatic.OnlineUsers.FirstOrDefault(p => p.ID == id);
-                //hubContext.Clients.Client(meUser.ConnectionId).alertMessage(message, false);
+                success = false;
+                return Json(new { success, message, data = listUrl }, JsonRequestBehavior.AllowGet);
             }
-
-            return Json(new { success, message, data = listUrl }, JsonRequestBehavior.AllowGet);
+            
         }
 
         private void addMessagePrivate(string userId, string message)

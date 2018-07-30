@@ -912,7 +912,7 @@ $.connection.hub.start().done(function () {
     $('#update-group-user').click(function () {
         let groupName = $('#modal-group .modal-title span').data('name');
         let listChecked = getChecked();
-        hub.server.updateUserGroup(listChecked, groupName);
+        hub.server.updateUserGroup(listChecked, groupName,[]);
     });
 
     //Xóa thành viên khỏi nhóm
