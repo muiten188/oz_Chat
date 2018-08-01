@@ -138,8 +138,37 @@ namespace CRMOZ.Web
             string id = Context.User.Identity.GetUserId();
             using (var db = new OZChatDbContext())
             {
-                var users = db.HubUsers.Where(p => p.ID != id).ToList();
-                Clients.Caller.alluser(users);
+                var user1 = (from hub in db.HubUsers
+                             join mes in db.MessagePrivates
+                             on (
+                               from mes1
+                               in db.MessagePrivates
+                               where mes1.FromID == hub.ID || mes1.ReceiveID == hub.ID
+                               orderby mes1.CreatedDate descending
+                               select mes1.ID
+                             ).FirstOrDefault() equals mes.ID
+                             into ps
+                             from o in ps.DefaultIfEmpty()
+                             where hub.ID != id
+
+                             orderby o.CreatedDate descending
+                             select new
+                             {
+                                 ID = hub.ID,
+                                 Email = hub.Email,
+                                 UserName = hub.UserName,
+                                 FullName = hub.FullName,
+                                 Avatar = hub.Avatar,
+                                 Connected = hub.Connected,
+                                 MessagePrivates = hub.MessagePrivates,
+                                 Content = o.Content,
+                                 FromID = o.FromID,
+                                 ReceiveID = o.ReceiveID,
+                                 CreatedDate = o.CreatedDate==null? (DateTime?)null : o.CreatedDate
+                             }).ToList(); 
+
+                //var users = db.HubUsers.Where(p => p.ID != id).ToList();
+                Clients.Caller.alluser(user1);
             }
         }
 
@@ -556,26 +585,47 @@ namespace CRMOZ.Web
             int totalMessage = 0;
             using (var db = new OZChatDbContext())
             {
+                List<Object> listJoinGroupUser = new List<object>();
                 string userId = Context.User.Identity.GetUserId();
-                var groupUser = db.HubUserGroups.Where(p => p.UserID == userId).Include(p => p.Group).ToList();
-                if (groupUser != null)
-                {
-                    List<GroupViewModel> groups = new List<GroupViewModel>();
-                    foreach (var item in groupUser)
+                   var joinGroupUser=(from hug in db.HubUserGroups
+                                      join gr in db.Groups 
+                                      on hug.GroupID equals gr.ID
+                                      into ps1
+                                      from o1 in ps1.DefaultIfEmpty()
+
+                                      join nm in db.NewMessageGroups
+                                      on hug.GroupID equals nm.GroupID
+                                      into ps2
+                                      from o2 in ps2.DefaultIfEmpty()
+
+                                      join mes in db.MessageGroups
+                                         on (
+                                           from mes1
+                                           in db.MessageGroups
+                                           where mes1.GroupID == hug.GroupID
+                                           orderby mes1.CreatedDate descending
+                                           select mes1.ID
+                                         ).FirstOrDefault() equals mes.ID
+                                         into ps
+                                         from o in ps.DefaultIfEmpty()
+                                      where hug.UserID == userId
+                                      orderby o.CreatedDate descending
+                                         select new
+                                         {
+                                             ID = hug.GroupID, 
+                                             Name = o1.Name, 
+                                             Content=o.Content,
+                                             Count = o2.Count==null? 0 : o2.Count,
+                                             CreatedDate = o.CreatedDate == null ? (DateTime?)null : o.CreatedDate
+                                         }).ToList();
+                if (joinGroupUser != null) { 
+                    //List<GroupViewModel> groups = new List<GroupViewModel>();
+                    for (int i = 0; i < joinGroupUser.Count; i++)
                     {
-                        var group = item.Group;
-                        var newMessageGroup = db.NewMessageGroups.FirstOrDefault(p => p.GroupID == group.ID && p.UserID == userId);
-                        if (newMessageGroup != null)
-                        {
-                            groups.Add(new GroupViewModel { ID = group.ID, Name = group.Name, Count = newMessageGroup.Count });
-                            totalMessage += newMessageGroup.Count;
-                        }
-                        else
-                        {
-                            groups.Add(new GroupViewModel { ID = group.ID, Name = group.Name, Count = 0 });
-                        }
+                        var item = joinGroupUser[i];
+                        totalMessage += item.Count;
                     }
-                    Clients.Caller.allGroup(groups, totalMessage);
+                    Clients.Caller.allGroup(joinGroupUser, totalMessage);
                 }
             }
         }
