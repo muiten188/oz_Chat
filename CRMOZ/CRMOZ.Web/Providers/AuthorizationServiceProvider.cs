@@ -32,7 +32,31 @@ namespace WebApisTokenAuth
             // Change authentication ticket for refresh token requests  
             var newIdentity = new ClaimsIdentity(context.Ticket.Identity);
             newIdentity.AddClaim(new Claim("newClaim", "newValue"));
+            HubUser user;
+            try
+            {
+                if (!string.IsNullOrEmpty(context.Ticket.Properties.Dictionary["username"]))
+                {
+                    string userName = Convert.ToString(context.Ticket.Properties.Dictionary["username"]);
+                    using (var db = new OZChatDbContext())
+                    {
+                        user = db.HubUsers.Where(p => p.UserName == userName).FirstOrDefault();
+                        if (user != null)
+                        {
+                            //newIdentity.AddClaim(new Claim("avartar", "bach"));
+                            context.Ticket.Properties.Dictionary["avartar"] = user.Avatar;
+                            context.Ticket.Properties.Dictionary["fullName"] = user.FullName;
+                            
+                        }
 
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+            
             var newTicket = new AuthenticationTicket(newIdentity, context.Ticket.Properties);
             context.Validated(newTicket);
 
@@ -125,7 +149,7 @@ namespace WebApisTokenAuth
         {
 
             var guid = Guid.NewGuid().ToString();
-
+            
             // copy all properties and set the desired lifetime of refresh token  
             var refreshTokenProperties = new AuthenticationProperties(context.Ticket.Properties.Dictionary)
             {

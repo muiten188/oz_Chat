@@ -284,7 +284,10 @@ namespace CRMOZ.Web.Controllers
             var identity = new ClaimsIdentity(User.Identity);
 
             // update claim value
-            identity.RemoveClaim(identity.FindFirst(key));
+            if (identity.FindFirst(key) != null)
+            {
+                identity.RemoveClaim(identity.FindFirst(key));
+            }
             identity.AddClaim(new Claim(key, value));
 
             // tell the authentication manager to use this new identity
