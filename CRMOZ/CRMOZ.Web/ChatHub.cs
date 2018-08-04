@@ -525,6 +525,7 @@ namespace CRMOZ.Web
 
                 //Lấy ra các thành viên trong nhóm
                 var groupUsers = _db.HubUserGroups.Where(p => p.GroupID == groupId && p.UserID != userId).ToList();
+                Boolean saveChange = false;
                 foreach (var item in groupUsers)
                 {
                     var onlineUser = CommonStatic.OnlineUsers.FirstOrDefault(p => p.ID == item.UserID);
@@ -535,11 +536,7 @@ namespace CRMOZ.Web
                         var listConnection = _db.Connection.Where(p => p.UserID == item.UserID).ToList();
                         if (CommonStatic.InteracGroups.FirstOrDefault(p => p.UserID == item.UserID && p.GroupID == groupId) == null)
                         {
-                            // Cập nhật lại số tin nhắn chưa đọc
-                            for(int i = 0; i < listConnection.Count(); i++)
-                            {
-                                Clients.Client(listConnection[i].ConnectionID).addCountMessageGroup(groupId);
-                            }
+                            
                             //Lấy ra 1 NewMessageGroup thoa mãn điều kiện
                             var messGroup = _db.NewMessageGroups.FirstOrDefault(p => p.UserID == item.UserID && p.GroupID == groupId);
                             // Nếu đã tồn tại thì cộng thêm 1
@@ -551,6 +548,14 @@ namespace CRMOZ.Web
                             {
                                 // Chưa tồn tại thì thêm mới
                                 _db.NewMessageGroups.Add(new NewMessageGroup { UserID = item.UserID, GroupID = groupId, Count = 1 });
+                            }
+                            saveChange = true;
+                            _db.MessageGroups.Add(newMessage);
+                            _db.SaveChanges();
+                            // Cập nhật lại số tin nhắn chưa đọc
+                            for (int i = 0; i < listConnection.Count(); i++)
+                            {
+                                Clients.Client(listConnection[i].ConnectionID).addCountMessageGroup(groupId);
                             }
                         }
                     }
@@ -572,10 +577,14 @@ namespace CRMOZ.Web
 
                             }  
                     }
-
+                    
                 }
-                _db.MessageGroups.Add(newMessage);
-                _db.SaveChanges();
+                if (saveChange==false)
+                {
+                    _db.MessageGroups.Add(newMessage);
+                    _db.SaveChanges();
+                }
+                
             }
         }
 
