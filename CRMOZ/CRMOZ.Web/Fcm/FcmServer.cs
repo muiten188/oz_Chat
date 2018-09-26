@@ -28,6 +28,10 @@ namespace CRMOZ.Web.Fcm
                 oFcm.data.custom_notification.title = txttitle;
                 oFcm.data.custom_notification.body = txtmsg;
                 oFcm.data.custom_notification.userID = userId;
+                //notify
+                oFcm.notification.title = txttitle;
+                oFcm.notification.body = txtmsg;
+                oFcm.notification.userID = userId;
                 using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
                 {
                     string json = new JavaScriptSerializer().Serialize(oFcm);
@@ -67,6 +71,10 @@ namespace CRMOZ.Web.Fcm
                 oFcm.data.custom_notification.title = txttitle;
                 oFcm.data.custom_notification.body = txtmsg;
                 oFcm.data.custom_notification.groupID = groupID;
+                //notify
+                oFcm.notification.title = txttitle;
+                oFcm.notification.body = txtmsg;
+                oFcm.notification.groupID = groupID;
                 using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
                 {
                     string json = new JavaScriptSerializer().Serialize(oFcm);

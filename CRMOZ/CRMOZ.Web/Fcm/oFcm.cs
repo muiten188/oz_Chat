@@ -9,6 +9,7 @@ namespace CRMOZ.Web.Fcm
     {
         public string to;
         public notificationCustom data = new notificationCustom();
+        public _notification notification = new _notification();
     }
 
     public class _notification
